@@ -1,11 +1,12 @@
 package es.edn.gmailai
 
-import dev.langchain4j.service.SystemMessage;
-import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.SystemMessage
 
 interface MyAssistant {
 
-    @SystemMessage(fromResource = "system-prompt-template.txt")
-    String chat(@UserMessage String userMessage);
+    String freeChat(String question);
+
+    @SystemMessage(fromResource = "/system-prompt-template.txt")
+    String assist(String question);
 
 }

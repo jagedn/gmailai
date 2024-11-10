@@ -1,34 +1,29 @@
 package es.edn.gmailai.factories
 
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.rag.content.retriever.ContentRetriever;
-import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
-import dev.langchain4j.service.AiServices;
-import dev.langchain4j.store.embedding.EmbeddingStore;
-import es.edn.gmailai.MyAssistant;
-import io.micronaut.context.annotation.Factory;
-import io.micronaut.context.annotation.Value;
-import jakarta.inject.Singleton;
+
+import dev.langchain4j.memory.chat.MessageWindowChatMemory
+import dev.langchain4j.model.chat.ChatLanguageModel
+import dev.langchain4j.rag.content.retriever.ContentRetriever
+import dev.langchain4j.service.AiServices
+import es.edn.gmailai.MyAssistant
+import es.edn.groogle.GmailService
+import io.micronaut.context.annotation.Context
+import io.micronaut.context.annotation.Factory
+import jakarta.inject.Singleton
 
 @Factory
+@Context
 class AssistantFactory {
 
     @Singleton
-    ContentRetriever contentRetriever(
-            EmbeddingStore<TextSegment> embeddingStore,
-            EmbeddingModel embeddingModel,
-            @Value('${localai.chat.max-results:10}')Integer maxResults){
-        return new EmbeddingStoreContentRetriever(embeddingStore, embeddingModel, maxResults);
-    }
-
-    @Singleton
     MyAssistant myAssistant(ChatLanguageModel chatModel,
-                            ContentRetriever contentRetriever){
+                            ContentRetriever contentRetriever,
+                            GmailService gmailService) {
         return AiServices.builder(MyAssistant.class)
                 .chatLanguageModel(chatModel)
                 .contentRetriever(contentRetriever)
+                .chatMemory(MessageWindowChatMemory.withMaxMessages(10))
+        //.tools(new GmailTool(gmailService))
                 .build();
     }
 }

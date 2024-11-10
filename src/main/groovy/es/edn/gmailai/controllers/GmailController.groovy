@@ -1,6 +1,6 @@
 package es.edn.gmailai.controllers
 
-import com.github.javaparser.utils.StringEscapeUtils
+import dev.langchain4j.data.document.Document
 import dev.langchain4j.data.document.Metadata
 import dev.langchain4j.data.document.parser.TextDocumentParser
 import dev.langchain4j.data.document.transformer.jsoup.HtmlToTextDocumentTransformer
@@ -33,35 +33,37 @@ class GmailController {
     @Get("/between/{afterStr}/{beforeStr}")
     int read(String afterStr, String beforeStr){
         int count=0
+
         gmailService.eachMessage({
             after afterStr
             before beforeStr
         },{
 
-            var map = headers
-            var id = message.id
-            var subject = map.find{"subject"=="$it.name".toLowerCase()}?.value ?: 'sin asunto'
-            var from = map.find{"from"=="$it.name".toLowerCase()}?.value ?: 'desconocido'
-            var date = map.find{"date"=="$it.name".toLowerCase()}?.value ?: '01/01/1999'
-            var texto = body
-            var plain = htmlToTextTransformer.transform(
-                    textDocumentParser.parse( new ByteArrayInputStream(texto.bytes))
-            ).text()
+            var map = headers.collectEntries({
+                var key = it.name.toString().toLowerCase()
+                var value = it.value.toString()
+                Map.of(key, value)
+            }) as Map<String, String>
 
-            var embedded = TextSegment.from("""
-            Asunto: $subject
-            De: $from
-            Mensaje:
+            var subject = map.subject ?: 'sin asunto'
+            var from = map.from ?: 'desconocido'
+            var date = map.date ?: '01/01/1999'
+
+            var text = body.length() ? body : "sin body"
+            var html = Document.from("<html>$body</html>")
+
+            var plain = htmlToTextTransformer.transform(html).text()
+
+            var embedded = TextSegment.from("""            
+            recibido el '$date' , remitente '$from', asunto '$subject', body:              
             $plain
-            """.stripIndent(), Metadata.from([
-                    'id':id,
-                    'fecha': date
-            ]))
+            """.stripIndent(), Metadata.from(map))
 
             var embedding = embeddingModel.embed(embedded)
 
             embeddingStore.add(embedding.content(), embedded)
 
+            println subject
             count++
         })
         count

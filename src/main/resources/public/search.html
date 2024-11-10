@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Gmail LocalAI</title>
+    <!-- Enlace a CSS de Bootstrap (jsDelivr) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Centrar el formulario verticalmente en la página */
+        .fullscreen-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+
+        /* Ajustes adicionales al div de respuesta */
+        #respuesta {
+            min-height: 100px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+
+<div class="fullscreen-container">
+    <div class="col-md-6 col-lg-4 p-4 bg-white shadow rounded">
+        <h2 class="text-center mb-4">Gmail AI</h2>
+
+        <!-- Formulario con campo textarea -->
+        <div class="mt-4">
+            <h5>Semantic Search</h5>
+        </div>
+        <form id="miFormulario">
+            <div class="mb-3">
+                <label class="form-label" for="miTextarea">Query:</label>
+                <textarea class="form-control" id="miTextarea" placeholder="Your question..." rows="5"></textarea>
+            </div>
+            <!-- Botón estilizado con Bootstrap -->
+            <button class="btn btn-primary btn-lg w-100 mt-3" onclick="mostrarRespuesta()" type="button">Send</button>
+        </form>
+
+        <!-- Div para mostrar la respuesta -->
+        <div class="mt-4">
+            <h5>Result:</h5>
+            <div class="mt-2" id="respuesta"></div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript de Bootstrap (jsDelivr) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    async function mostrarRespuesta() {
+        const texto = document.getElementById('miTextarea').value;
+        document.getElementById('respuesta').innerText = '...';
+        const rawResponse = await fetch('/search', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({question: texto})
+        });
+        const content = await rawResponse.json();
+        const show = content.map(r => `${r.subject} : ${r.body}`).join("\n--------------------------\n")
+        document.getElementById('respuesta').innerText = show;
+    }
+</script>
+
+</body>
+</html>

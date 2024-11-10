@@ -15,3 +15,6 @@ out/
 .factorypath
 client_secret.json
 dev/models/*
+/src/main/resources/application-openai.properties
+/dev/localai/
+/dev/ollama/
